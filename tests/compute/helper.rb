@@ -20,6 +20,10 @@ def compute_providers
     :glesys   => {
       :mocked => false
     },
+    :ibm => {
+      :server_attributes => {},
+      :mocked => true
+    },
     :ninefold   => {
       :mocked => false
     },
