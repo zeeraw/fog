@@ -3,18 +3,17 @@ module Fog
     class IBM
       class Real
 
-        # Get addresses
+        # Get all locations
         #
         # ==== Returns
         # * response<~Excon::Response>:
-        #   * body<~Hash>:
-        #     * instances<~Array>:
+        #   * body<~Hash>
         # TODO: docs
-        def get_addresses
+        def list_locations
           request(
             :method   => 'GET',
             :expects  => 200,
-            :path     => '/addresses'
+            :path     => "/locations"
           )
         end
 

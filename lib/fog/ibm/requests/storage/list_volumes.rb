@@ -1,20 +1,22 @@
 module Fog
-  module Compute
+  module Storage
     class IBM
       class Real
 
-        # Get all locations
+        # Get existing volumes
         #
         # ==== Returns
         # * response<~Excon::Response>:
-        #   * body<~Hash>
+        #   * body<~Hash>:
+        #     * volumes<~Array>
         # TODO: docs
-        def get_locations
-          request(
+        def list_volumes
+          options = {
             :method   => 'GET',
             :expects  => 200,
-            :path     => "/locations"
-          )
+            :path     => '/storage'
+          }
+          request(options)
         end
 
       end
