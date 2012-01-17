@@ -36,11 +36,7 @@ module Fog
 
         def save
           requires :name, :image_id, :instance_type, :location
-          params = {
-            'publicKey' => key_name
-          }
-          params.reject! {|k, v| v.nil? }
-          connection.create_instance(name, image_id, instance_type, location, params).body['instances'].each do |iattrs|
+          connection.create_instance(name, image_id, instance_type, location, key_name).body['instances'].each do |iattrs|
             if iattrs['name'] == name
               merge_attributes(iattrs)
               return true
