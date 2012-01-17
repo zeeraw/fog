@@ -5,7 +5,7 @@ module Fog
   module Compute
     class IBM < Fog::Service
 
-      requires :ibm_user, :ibm_password
+      requires :ibm_user_id, :ibm_password
       recognizes :location
 
       model_path 'fog/ibm/models/compute'
@@ -60,7 +60,7 @@ module Fog
 
       class Real
         def initialize(options={})
-          @connection = Fog::IBM::Connection.new(options[:ibm_user], options[:ibm_password])
+          @connection = Fog::IBM::Connection.new(options[:ibm_user_id], options[:ibm_password])
         end
 
         private
