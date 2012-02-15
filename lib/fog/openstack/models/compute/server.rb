@@ -35,11 +35,11 @@ module Fog
 
         def metadata
           @metadata ||= begin
-            Fog::Compute::OpenStack::Metadata.new({
-              :connection => connection,
-              :parent => self
-            })
-          end
+                          Fog::Compute::OpenStack::Metadata.new({
+                :connection => connection,
+                :parent => self
+              })
+                        end
         end
 
         def metadata=(new_metadata={})
@@ -64,7 +64,11 @@ module Fog
         end
 
         def private_ip_address
-          addresses['private'].first
+          if addresses['private']
+            return addresses['private'].first
+          else #assume no private IP means private cloud
+            return addresses['internet'].first
+          end
         end
 
         def private_key_path
@@ -77,7 +81,11 @@ module Fog
         end
 
         def public_ip_address
-          addresses['public'].first
+          if addresses['public']
+            return addresses['public'].first
+          else  #assume no public IP means private cloud
+            return addresses['internet'].first
+          end
         end
 
         def public_key_path
@@ -172,12 +180,12 @@ module Fog
         def setup(credentials = {})
           requires :public_ip_address, :identity, :public_key, :username
           Fog::SSH.new(public_ip_address, username, credentials).run([
-            %{mkdir .ssh},
-            %{echo "#{public_key}" >> ~/.ssh/authorized_keys},
-            %{passwd -l #{username}},
-            %{echo "#{MultiJson.encode(attributes)}" >> ~/attributes.json},
-            %{echo "#{MultiJson.encode(metadata)}" >> ~/metadata.json}
-          ])
+              %{mkdir .ssh},
+              %{echo "#{public_key}" >> ~/.ssh/authorized_keys},
+              %{passwd -l #{username}},
+              %{echo "#{MultiJson.encode(attributes)}" >> ~/attributes.json},
+              %{echo "#{MultiJson.encode(metadata)}" >> ~/metadata.json}
+            ])
         rescue Errno::ECONNREFUSED
           sleep(1)
           retry
