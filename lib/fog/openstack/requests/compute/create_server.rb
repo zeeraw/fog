@@ -3,11 +3,12 @@ module Fog
     class OpenStack
       class Real
 
-        def create_server(name, image_ref, flavor_ref, options = {})
+        def create_server(name, image_ref, flavor_ref, key_name, options = {})
           data = {
             'server' => {
               'flavorRef'  => flavor_ref,
               'imageRef'   => image_ref,
+              'key_name'   => key_name,
               'name'       => name
             }
           }
@@ -40,7 +41,7 @@ module Fog
 
       class Mock
 
-        def create_server(name, image_ref, flavor_ref, options = {})
+        def create_server(name, image_ref, flavor_ref, key_name, options = {})
           response = Excon::Response.new
           response.status = 202
 
@@ -53,6 +54,7 @@ module Fog
             'hostId'    => "123456789ABCDEF01234567890ABCDEF",
             'metadata'  => options['metadata'] || {},
             'name'      => options['name'] || "server_#{rand(999)}",
+            'key_name'  => 'securitykey',
             'accessIPv4'  => options['accessIPv4'] || "",
             'accessIPv6'  => options['accessIPv6'] || "",
             'progress'  => 0,
