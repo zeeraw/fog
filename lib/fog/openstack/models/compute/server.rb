@@ -23,6 +23,7 @@ module Fog
         attribute :availability_zone
         attribute :user_data_encoded
         attribute :state,       :aliases => 'status'
+        attribute :key_name
 
         attr_reader :password
         attr_writer :private_key, :private_key_path, :public_key, :public_key_path, :username, :image_ref, :flavor_ref
@@ -164,7 +165,7 @@ module Fog
 
         def save
           raise Fog::Errors::Error.new('Resaving an existing object may create a duplicate') if identity
-          requires :flavor_ref, :image_ref, :name
+          requires :flavor_ref, :image_ref, :key_name, :name
           meta_hash = {}
           metadata.each { |meta| meta_hash.store(meta.key, meta.value) }
           options = {
@@ -176,7 +177,7 @@ module Fog
             'user_data' => user_data_encoded
           }
           options = options.reject {|key, value| value.nil?}
-          data = connection.create_server(name, image_ref, flavor_ref, options)
+          data = connection.create_server(name, image_ref, flavor_ref, key_name, options)
           merge_attributes(data.body['server'])
           true
         end
