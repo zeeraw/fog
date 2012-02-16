@@ -65,8 +65,10 @@ module Fog
 
         def private_ip_address
           if addresses['private']
+            #assume only a single private
             return addresses['private'].first
-          else #assume no private IP means private cloud
+          else
+            #assume no private IP means private cloud
             return addresses['internet'].first
           end
         end
@@ -82,8 +84,10 @@ module Fog
 
         def public_ip_address
           if addresses['public']
-            return addresses['public'].first
-          else  #assume no public IP means private cloud
+            #assume last is either original or assigned from floating IPs
+            return addresses['public'].last
+          else
+            #assume no public IP means private cloud
             return addresses['internet'].first
           end
         end
