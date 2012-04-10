@@ -6,8 +6,8 @@ module Fog
   module Compute
     class OSRackspace < Fog::Service
 
-      requires :rackspace_username, :rackspace_password, :rackspace_auth_url
-      recognizes :rackspace_auth_token, :rackspace_management_url, :persistent, :rackspace_compute_service_name
+      requires :rackspace_username, :rackspace_api_key
+      recognizes :rackspace_auth_url, :rackspace_auth_token, :rackspace_management_url, :persistent, :rackspace_compute_service_name
 
       model_path 'fog/osrackspace/models/compute'
       model       :flavor
@@ -105,10 +105,10 @@ module Fog
 
         def initialize(options={})
           require 'multi_json'
+          @rackspace_api_key = options[:rackspace_api_key]
           @rackspace_username = options[:rackspace_username]
-          @rackspace_password = options[:rackspace_password]
-          @rackspace_compute_service_name = options[:rackspace_compute_service_name] || 'cloudServersOpenStack'
           @rackspace_auth_url = options[:rackspace_auth_url]
+          @rackspace_compute_service_name = options[:rackspace_compute_service_name]
           @rackspace_auth_token = options[:rackspace_auth_token]
           @rackspace_management_url = options[:rackspace_management_url]
           @rackspace_must_reauthenticate = false
@@ -160,8 +160,8 @@ module Fog
         def authenticate
           if @rackspace_must_reauthenticate || @rackspace_auth_token.nil?
             options = {
-              :rackspace_password  => @rackspace_password,
               :rackspace_username => @rackspace_username,
+              :rackspace_api_key  => @rackspace_api_key,
               :rackspace_auth_url => @rackspace_auth_url,
               :rackspace_compute_service_name => @rackspace_compute_service_name
             }

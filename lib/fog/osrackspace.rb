@@ -45,18 +45,18 @@ module Fog
 
     # keystone style auth
     def self.authenticate_v2(options, connection_options = {})
-      rackspace_auth_url = options[:rackspace_auth_url]
+      rackspace_auth_url = options[:rackspace_auth_url] || "https://identity.api.rackspacecloud.com/v2.0/tokens"
       uri = URI.parse(rackspace_auth_url)
       connection = Fog::Connection.new(rackspace_auth_url, false, connection_options)
       @rackspace_username = options[:rackspace_username]
-      @rackspace_password  = options[:rackspace_password]
-      @compute_service_name = options[:rackspace_compute_service_name]
+      @rackspace_api_key  = options[:rackspace_api_key]
+      @compute_service_name = options[:rackspace_compute_service_name] || "cloudServersOpenStack"
 
       req_body= {
         'auth' => {
-          'passwordCredentials'  => {
+          'RAX-KSKEY:apiKeyCredentials'  => {
             'username' => @rackspace_username,
-            'password' => @rackspace_password
+            'apiKey' => @rackspace_api_key
           }
         }
       }
@@ -71,7 +71,7 @@ module Fog
         })
       body=MultiJson.decode(response.body)
 
-      Fog::Logger.warning("OSRackspace[:compute] body: #{body}")
+      Fog::Logger.debug("OSRackspace[:compute] body: #{body}")
 
       if svc = body['access']['serviceCatalog'].detect{|x| x['name'] == @compute_service_name}
         mgmt_url = svc['endpoints'].detect{|x| x['publicURL']}['publicURL']
