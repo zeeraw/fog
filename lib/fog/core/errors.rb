@@ -54,6 +54,10 @@ An alternate file may be used by placing its path in the FOG_RC environment vari
   :openstack_username:
   :openstack_auth_url:
   :openstack_tenant:
+  :osrackspace_api_key:
+  :osrackspace_username:
+  :osrackspace_auth_url:
+  :osrackspace_tenant:
   :ovirt_username:
   :ovirt_password:
   :ovirt_url:
