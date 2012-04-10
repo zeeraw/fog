@@ -6,8 +6,8 @@ module Fog
   module Compute
     class OSRackspace < Fog::Service
 
-      requires :osrackspace_api_key, :osrackspace_username, :osrackspace_auth_url
-      recognizes :osrackspace_auth_token, :osrackspace_management_url, :persistent, :osrackspace_compute_service_name, :osrackspace_tenant
+      requires :rackspace_username, :rackspace_password, :rackspace_auth_url
+      recognizes :rackspace_auth_token, :rackspace_management_url, :persistent, :rackspace_compute_service_name
 
       model_path 'fog/osrackspace/models/compute'
       model       :flavor
@@ -88,15 +88,15 @@ module Fog
 
         def initialize(options={})
           require 'multi_json'
-          @osrackspace_username = options[:osrackspace_username]
+          @rackspace_username = options[:rackspace_username]
         end
 
         def data
-          self.class.data[@osrackspace_username]
+          self.class.data[@rackspace_username]
         end
 
         def reset_data
-          self.class.data.delete(@osrackspace_username)
+          self.class.data.delete(@rackspace_username)
         end
 
       end
@@ -105,14 +105,13 @@ module Fog
 
         def initialize(options={})
           require 'multi_json'
-          @osrackspace_api_key = options[:osrackspace_api_key]
-          @osrackspace_username = options[:osrackspace_username]
-          @osrackspace_tenant = options[:osrackspace_tenant]
-          @osrackspace_compute_service_name = options[:osrackspace_compute_service_name] || 'nova'
-          @osrackspace_auth_url = options[:osrackspace_auth_url]
-          @osrackspace_auth_token = options[:osrackspace_auth_token]
-          @osrackspace_management_url = options[:osrackspace_management_url]
-          @osrackspace_must_reauthenticate = false
+          @rackspace_username = options[:rackspace_username]
+          @rackspace_password = options[:rackspace_password]
+          @rackspace_compute_service_name = options[:rackspace_compute_service_name] || 'cloudServersOpenStack'
+          @rackspace_auth_url = options[:rackspace_auth_url]
+          @rackspace_auth_token = options[:rackspace_auth_token]
+          @rackspace_management_url = options[:rackspace_management_url]
+          @rackspace_must_reauthenticate = false
           @connection_options = options[:connection_options] || {}
           authenticate
           @persistent = options[:persistent] || false
@@ -136,7 +135,7 @@ module Fog
             }))
           rescue Excon::Errors::Unauthorized => error
             if error.response.body != 'Bad username or password' # token expiration
-              @osrackspace_must_reauthenticate = true
+              @rackspace_must_reauthenticate = true
               authenticate
               retry
             else # bad credentials
@@ -159,33 +158,23 @@ module Fog
         private
 
         def authenticate
-          if @osrackspace_must_reauthenticate || @osrackspace_auth_token.nil?
+          if @rackspace_must_reauthenticate || @rackspace_auth_token.nil?
             options = {
-              :osrackspace_api_key  => @osrackspace_api_key,
-              :osrackspace_username => @osrackspace_username,
-              :osrackspace_auth_url => @osrackspace_auth_url,
-              :osrackspace_tenant => @osrackspace_tenant,
-              :osrackspace_compute_service_name => @osrackspace_compute_service_name
+              :rackspace_password  => @rackspace_password,
+              :rackspace_username => @rackspace_username,
+              :rackspace_auth_url => @rackspace_auth_url,
+              :rackspace_compute_service_name => @rackspace_compute_service_name
             }
-            if @osrackspace_auth_url =~ /\/v2.0\//
-              credentials = Fog::OSRackspace.authenticate_v2(options, @connection_options)
-            else
-              credentials = Fog::OSRackspace.authenticate_v1(options, @connection_options)
-            end
+            credentials = Fog::OSRackspace.authenticate_v2(options, @connection_options)
             @auth_token = credentials[:token]
             url = credentials[:server_management_url]
             uri = URI.parse(url)
           else
-            @auth_token = @osrackspace_auth_token
-            uri = URI.parse(@osrackspace_management_url)
+            @auth_token = @rackspace_auth_token
+            uri = URI.parse(@rackspace_management_url)
           end
           @host   = uri.host
           @path   = uri.path
-          @path.sub!(/\/$/, '')
-          unless @path.match(/1\.1/)
-            raise Fog::Compute::OSRackspace::ServiceUnavailable.new(
-                    "OSRackspace binding only supports version 1.1")
-          end
           @port   = uri.port
           @scheme = uri.scheme
         end

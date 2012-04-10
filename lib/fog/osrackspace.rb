@@ -43,60 +43,35 @@ module Fog
 
     service(:compute,         'osrackspace/compute',        'Compute')
 
-    # legacy v1.0 style auth
-    def self.authenticate_v1(options, connection_options = {})
-      osrackspace_auth_url = options[:osrackspace_auth_url]
-      uri = URI.parse(osrackspace_auth_url)
-      connection = Fog::Connection.new(osrackspace_auth_url, false, connection_options)
-      @osrackspace_api_key  = options[:osrackspace_api_key]
-      @osrackspace_username = options[:osrackspace_username]
-      response = connection.request({
-        :expects  => [200, 204],
-        :headers  => {
-          'X-Auth-Key'  => @osrackspace_api_key,
-          'X-Auth-User' => @osrackspace_username
-        },
-        :host     => uri.host,
-        :method   => 'GET',
-        :path     =>  (uri.path and not uri.path.empty?) ? uri.path : 'v1.0'
-      })
-
-      return {
-        :token => response.headers['X-Auth-Token'],
-        :server_management_url => response.headers['X-Server-Management-Url']
-      }
-
-    end
-
-   # keystone style auth
-   def self.authenticate_v2(options, connection_options = {})
-      osrackspace_auth_url = options[:osrackspace_auth_url]
-      uri = URI.parse(osrackspace_auth_url)
-      connection = Fog::Connection.new(osrackspace_auth_url, false, connection_options)
-      @osrackspace_api_key  = options[:osrackspace_api_key]
-      @osrackspace_username = options[:osrackspace_username]
-      @osrackspace_tenant = options[:osrackspace_tenant]
-      @compute_service_name = options[:osrackspace_compute_service_name]
+    # keystone style auth
+    def self.authenticate_v2(options, connection_options = {})
+      rackspace_auth_url = options[:rackspace_auth_url]
+      uri = URI.parse(rackspace_auth_url)
+      connection = Fog::Connection.new(rackspace_auth_url, false, connection_options)
+      @rackspace_username = options[:rackspace_username]
+      @rackspace_password  = options[:rackspace_password]
+      @compute_service_name = options[:rackspace_compute_service_name]
 
       req_body= {
         'auth' => {
           'passwordCredentials'  => {
-            'username' => @osrackspace_username,
-            'password' => @osrackspace_api_key
+            'username' => @rackspace_username,
+            'password' => @rackspace_password
           }
         }
       }
-      req_body['auth']['tenantName'] = @osrackspace_tenant if @osrackspace_tenant
 
       response = connection.request({
-        :expects  => [200, 204],
-        :headers => {'Content-Type' => 'application/json'},
-        :body  => MultiJson.encode(req_body),
-        :host     => uri.host,
-        :method   => 'POST',
-        :path     =>  (uri.path and not uri.path.empty?) ? uri.path : 'v2.0'
-      })
+          :expects  => [200, 204],
+          :headers => {'Content-Type' => 'application/json'},
+          :body  => MultiJson.encode(req_body),
+          :host     => uri.host,
+          :method   => 'POST',
+          :path     =>  (uri.path and not uri.path.empty?) ? uri.path : 'v2.0'
+        })
       body=MultiJson.decode(response.body)
+
+      Fog::Logger.warning("OSRackspace[:compute] body: #{body}")
 
       if svc = body['access']['serviceCatalog'].detect{|x| x['name'] == @compute_service_name}
         mgmt_url = svc['endpoints'].detect{|x| x['publicURL']}['publicURL']
