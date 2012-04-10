@@ -50,6 +50,14 @@ module Fog
           status == 'ACTIVE'
         end
 
+        def metadata_value(key)
+          metadata.each do |md|
+            if md.key.eql?(key)
+              return md.value
+            end
+          end
+        end
+
       end
 
     end
