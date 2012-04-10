@@ -11,8 +11,10 @@ module Fog
         attribute :disk
         attribute :name
         attribute :ram
+        attribute :swap
+        attribute :vcpus
+        attribute :rxtx_factor
         attribute :links
-
       end
 
     end
