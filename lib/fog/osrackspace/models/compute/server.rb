@@ -18,10 +18,16 @@ module Fog
         attribute :name
         attribute :personality
         attribute :progress
+
+        attribute :tenant_id
+        attribute :user_id
+        attribute :created
+        attribute :updated
         attribute :accessIPv4
         attribute :accessIPv6
-        attribute :availability_zone
-        attribute :user_data_encoded
+
+        #attribute :availability_zone
+        #attribute :user_data_encoded
         attribute :state,       :aliases => 'status'
         attribute :key_name
 
@@ -49,10 +55,6 @@ module Fog
           metadata.load(metas)
         end
 
-        def user_data=(ascii_userdata)
-          self.user_data_encoded = [ascii_userdata].pack('m')
-        end
-
         def destroy
           requires :id
           connection.delete_server(id)
@@ -66,11 +68,7 @@ module Fog
 
         def private_ip_address
           if addresses['private']
-            #assume only a single private
             return addresses['private'].first
-          else
-            #assume no private IP means private cloud
-            return addresses['internet'].first
           end
         end
 
@@ -85,11 +83,17 @@ module Fog
 
         def public_ip_address
           if addresses['public']
-            #assume last is either original or assigned from floating IPs
             return addresses['public'].last
-          else
-            #assume no public IP means private cloud
-            return addresses['internet'].first
+          end
+        end
+
+        def ip_address(facing,type)
+          if addresses[facing]
+            addresses[facing].each do |ip|
+              if ip['version'] == type
+                return ip['addr']
+              end
+            end
           end
         end
 
@@ -172,9 +176,9 @@ module Fog
             'metadata'    => meta_hash,
             'personality' => personality,
             'accessIPv4' => accessIPv4,
-            'accessIPv6' => accessIPv6,
-            'availability_zone' => availability_zone,
-            'user_data' => user_data_encoded
+            'accessIPv6' => accessIPv6
+            #'availability_zone' => availability_zone,
+            #'user_data' => user_data_encoded
           }
           options = options.reject {|key, value| value.nil?}
           data = connection.create_server(name, image_ref, flavor_ref, key_name, options)
